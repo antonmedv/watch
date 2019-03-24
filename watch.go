@@ -5,7 +5,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/kr/pty"
 	"github.com/rivo/tview"
-	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,6 +13,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) <= 1 {
+		fmt.Fprintln(os.Stderr, "usage: watch [command]")
+		os.Exit(2)
+	}
+
 	startTime := time.Now()
 	sleep := 1 * time.Second
 	command := strings.Join(os.Args[1:], " ")
@@ -21,7 +26,6 @@ func main() {
 	if s, ok := os.LookupEnv("WATCH_COMMAND"); ok {
 		shell = s
 	}
-
 	sh := strings.Split(shell, " ")
 	sh = append(sh, command)
 
@@ -37,12 +41,12 @@ func main() {
 		SetTextAlign(tview.AlignRight).
 		SetText("0s")
 	elapsed.
-		SetBackgroundColor(tcell.ColorLimeGreen)
+		SetBackgroundColor(tcell.ColorLightCyan)
 	title := tview.NewTextView().
 		SetTextColor(tcell.ColorBlack).
 		SetText(command)
 	title.
-		SetBackgroundColor(tcell.ColorLimeGreen)
+		SetBackgroundColor(tcell.ColorLightCyan)
 	statusBar := tview.NewFlex().
 		AddItem(title, 0, 1, false).
 		AddItem(elapsed, 7, 1, false)
@@ -68,10 +72,8 @@ func main() {
 				panic(err)
 			}
 
-			viewer.SetText("")
-
-			w := tview.ANSIWriter(viewer)
-			if _, err := io.Copy(w, ptmx); err != nil {
+			out, err := ioutil.ReadAll(ptmx)
+			if err != nil {
 				panic(err)
 			}
 
@@ -81,8 +83,9 @@ func main() {
 			}
 
 			app.QueueUpdateDraw(func() {
-				d := time.Now().Sub(startTime).Round(time.Second)
-				elapsed.SetText(fmt.Sprintf("%v", d))
+				viewer.Clear()
+				viewer.SetText(tview.TranslateANSI(string(out)))
+				elapsed.SetText(fmt.Sprintf("%v", time.Since(startTime).Round(time.Second)))
 			})
 			time.Sleep(sleep)
 		}
