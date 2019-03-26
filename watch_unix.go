@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"syscall"
 
 	"github.com/kr/pty"
 )
@@ -26,7 +27,12 @@ func cmdOutput(cmd *exec.Cmd, buf *bytes.Buffer) error {
 
 	_, err = io.Copy(buf, ptmx)
 	if err != nil {
-		return err
+		// Linux kernel return EIO when attempting to read from a master pseudo
+		// terminal which no longer has an open slave. So ignore error here.
+		// See https://github.com/kr/pty/issues/21
+		if pathErr, ok := err.(*os.PathError); !ok || pathErr.Err != syscall.EIO {
+			return err
+		}
 	}
 
 	return nil
