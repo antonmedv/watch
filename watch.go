@@ -1,15 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/gdamore/tcell"
-	"github.com/kr/pty"
-	"github.com/rivo/tview"
-	"io/ioutil"
+
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/gdamore/tcell"
+
+	"github.com/rivo/tview"
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 	sleep := 1 * time.Second
 	command := strings.Join(os.Args[1:], " ")
 
-	shell := "bash -cli"
+	shell := defaultShell
 	if s, ok := os.LookupEnv("WATCH_COMMAND"); ok {
 		shell = s
 	}
@@ -58,33 +60,17 @@ func main() {
 
 	go func() {
 		for {
-			var err error
-
 			cmd := exec.Command(sh[0], sh[1:]...)
 
-			ptmx, err := pty.Start(cmd)
-			if err != nil {
-				panic(err)
-			}
-
-			err = pty.InheritSize(os.Stdin, ptmx)
-			if err != nil {
-				panic(err)
-			}
-
-			out, err := ioutil.ReadAll(ptmx)
-			if err != nil {
-				panic(err)
-			}
-
-			err = ptmx.Close()
+			var buf bytes.Buffer
+			err := cmdOutput(cmd, &buf)
 			if err != nil {
 				panic(err)
 			}
 
 			app.QueueUpdateDraw(func() {
 				viewer.Clear()
-				viewer.SetText(tview.TranslateANSI(string(out)))
+				viewer.SetText(tview.TranslateANSI(buf.String()))
 				elapsed.SetText(fmt.Sprintf("%v", time.Since(startTime).Round(time.Second)))
 			})
 			time.Sleep(sleep)
