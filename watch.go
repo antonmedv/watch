@@ -3,14 +3,12 @@ package main
 import (
 	"bytes"
 	"fmt"
-
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/gdamore/tcell"
-
 	"github.com/rivo/tview"
 )
 
@@ -31,7 +29,17 @@ func main() {
 	sh := strings.Split(shell, " ")
 	sh = append(sh, command)
 
+	screen, err := tcell.NewScreen()
+	if err != nil {
+		panic(err)
+	}
+	err = screen.Init()
+	if err != nil {
+		panic(err)
+	}
+
 	app := tview.NewApplication()
+	app.SetScreen(screen)
 	viewer := tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
@@ -69,7 +77,7 @@ func main() {
 			}
 
 			app.QueueUpdateDraw(func() {
-				viewer.Clear()
+				screen.Clear()
 				viewer.SetText(tview.TranslateANSI(buf.String()))
 				elapsed.SetText(fmt.Sprintf("%v", time.Since(startTime).Round(time.Second)))
 			})
@@ -77,7 +85,7 @@ func main() {
 		}
 	}()
 
-	err := app.Run()
+	err = app.Run()
 	if err != nil {
 		panic(err)
 	}

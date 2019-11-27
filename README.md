@@ -23,6 +23,20 @@ Specify command for _watch_ by setting `WATCH_COMMAND` (`bash -cli` by default).
 export WATCH_COMMAND=`fish -c`
 ```
 
+## Example
+
+```bash
+watch git status
+```
+
+```bash
+watch curl wttr.in
+```
+
+```bash
+watch 'll | grep .go'
+```
+
 ## Install
 
 ```bash
