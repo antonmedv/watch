@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
@@ -12,16 +13,25 @@ import (
 	"github.com/rivo/tview"
 )
 
+var version = "1.0.0"
+
 func main() {
+	// Command to watch can come from stdin or arguments.
+	var command string
+
 	if len(os.Args) <= 1 {
-		fmt.Fprintln(os.Stderr, "usage: watch [command]")
-		os.Exit(2)
+		fmt.Fprintf(os.Stdout, "Welcome to watch %v.\nType command to watch.\n> ", version)
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			command = scanner.Text()
+			break
+		}
+	} else {
+		command = strings.Join(os.Args[1:], " ")
 	}
 
 	startTime := time.Now()
 	sleep := 1 * time.Second
-	command := strings.Join(os.Args[1:], " ")
-
 	shell := defaultShell
 	if s, ok := os.LookupEnv("WATCH_COMMAND"); ok {
 		shell = s

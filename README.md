@@ -6,7 +6,6 @@ _watch_ tool rewritten in go.
 
 ## Features
 
-* 2s interval
 * working aliases
 * configurable shell
 * windows support
