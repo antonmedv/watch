@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/kr/pty"
+	"github.com/creack/pty"
 )
 
 const defaultShell = "bash -cli"
