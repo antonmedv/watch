@@ -10,6 +10,8 @@ _watch_ tool rewritten in go.
 * configurable shell
 * windows support
 
+<a href="https://webpod.dev/?from=watch"><img src="https://webpod.dev/img/banner.png" alt="Webpod - deploy JavaScript apps" width="190" align="right"></a>
+
 ## Usage
 
 ```bash
